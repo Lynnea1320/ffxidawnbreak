@@ -33,12 +33,16 @@
 #include "../packets/char_recast.h"
 #include "../packets/char_sync.h"
 #include "../packets/char_update.h"
+#include "../packets/event.h"
+#include "../packets/event_string.h"
 #include "../packets/inventory_finish.h"
 #include "../packets/key_items.h"
 #include "../packets/lock_on.h"
 #include "../packets/menu_raisetractor.h"
 #include "../packets/message_special.h"
 #include "../packets/message_system.h"
+#include "../packets/message_text.h"
+#include "../packets/release.h"
 
 #include "../ai/ai_container.h"
 #include "../ai/controllers/player_controller.h"
@@ -85,9 +89,12 @@ CCharEntity::CCharEntity()
     objtype     = TYPE_PC;
     m_EcoSystem = ECOSYSTEM::HUMANOID;
 
-    m_event.reset();
+    eventPreparation = new EventPrep();
+    currentEvent     = new EventInfo();
+
     inSequence = false;
     gotMessage = false;
+    m_Locked   = false;
 
     m_GMlevel    = 0;
     m_isGMHidden = false;
@@ -134,6 +141,7 @@ CCharEntity::CCharEntity()
     memset(&m_PetCommands, 0, sizeof(m_PetCommands));
     memset(&m_WeaponSkills, 0, sizeof(m_WeaponSkills));
     memset(&m_SetBlueSpells, 0, sizeof(m_SetBlueSpells));
+    memset(&m_FieldChocobo, 0, sizeof(m_FieldChocobo));
     memset(&m_unlockedAttachments, 0, sizeof(m_unlockedAttachments));
 
     memset(&m_questLog, 0, sizeof(m_questLog));
@@ -238,6 +246,15 @@ CCharEntity::~CCharEntity()
     delete CraftContainer;
     delete PMeritPoints;
     delete PJobPoints;
+
+    delete eventPreparation;
+    delete currentEvent;
+    while (!eventQueue.empty())
+    {
+        auto head = eventQueue.front();
+        eventQueue.pop_front();
+        delete head;
+    }
 }
 
 uint8 CCharEntity::GetGender()
@@ -900,24 +917,14 @@ void CCharEntity::OnWeaponSkillFinished(CWeaponSkillState& state, action_t& acti
                 }
                 if (actionTarget.reaction == REACTION::HIT)
                 {
-                    if (battleutils::GetScaledItemModifier(this, m_Weapons[damslot], Mod::ADDITIONAL_EFFECT))
-                    {
-                        actionTarget_t dummy;
-                        luautils::OnAdditionalEffect(this, PTarget, static_cast<CItemWeapon*>(m_Weapons[damslot]), &dummy, damage);
-                    }
-                    else if (damslot == SLOT_RANGED && m_Weapons[SLOT_AMMO] &&
-                             battleutils::GetScaledItemModifier(this, m_Weapons[damslot], Mod::ADDITIONAL_EFFECT))
-                    {
-                        actionTarget_t dummy;
-                        luautils::OnAdditionalEffect(this, PTarget, static_cast<CItemWeapon*>(getEquip(SLOT_AMMO)), &dummy, damage);
-                    }
-                    int wspoints = 1;
+                    int wspoints = map_config.ws_points_base;
                     if (PWeaponSkill->getPrimarySkillchain() != 0)
                     {
                         // NOTE: GetSkillChainEffect is INSIDE this if statement because it
                         //  ALTERS the state of the resonance, which misses and non-elemental skills should NOT do.
                         SUBEFFECT effect = battleutils::GetSkillChainEffect(PBattleTarget, PWeaponSkill->getPrimarySkillchain(),
                                                                             PWeaponSkill->getSecondarySkillchain(), PWeaponSkill->getTertiarySkillchain());
+                        // See SUBEFFECT enum in battleentity.h
                         if (effect != SUBEFFECT_NONE)
                         {
                             actionTarget.addEffectParam = battleutils::TakeSkillchainDamage(this, PBattleTarget, damage, taChar);
@@ -931,18 +938,18 @@ void CCharEntity::OnWeaponSkillFinished(CWeaponSkillState& state, action_t& acti
                                 actionTarget.addEffectMessage = 287 + effect;
                             }
                             actionTarget.additionalEffect = effect;
-
-                            if (effect >= 7)
+                             // Despite appearances, ws_points_skillchain is not a multiplier it is just an amount "per element"
+                            if (effect >= 7 && effect < 15)
                             {
-                                wspoints += 1;
+                                wspoints += (1 * map_config.ws_points_skillchain); // 1 element
                             }
                             else if (effect >= 3)
                             {
-                                wspoints += 2;
+                                wspoints += (2 * map_config.ws_points_skillchain); // 2 elements
                             }
                             else
                             {
-                                wspoints += 4;
+                                wspoints += (4 * map_config.ws_points_skillchain); // 4 elements
                             }
                         }
                     }
@@ -989,10 +996,10 @@ void CCharEntity::OnAbility(CAbilityState& state, action_t& action)
             // Blood pact MP costs are stored under animation ID
             float mpCost = PAbility->getAnimationID();
             if (StatusEffectContainer->HasStatusEffect(EFFECT_APOGEE))
-            { 
+            {
                 mpCost *= 1.5f;
             }
-            
+
             if (this->health.mp < mpCost)
             {
                 pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_UNABLE_TO_USE_JA));
@@ -1109,7 +1116,7 @@ void CCharEntity::OnAbility(CAbilityState& state, action_t& action)
                         StatusEffectContainer->DelStatusEffectsByFlag(EFFECTFLAG_BLOODPACT);
                     }
 
-                    // Blood Boon (does not affect Astra Flow BPs)
+                    // Blood Boon (does not affect Astral Flow BPs)
                     if ((PAbility->getAddType() & ADDTYPE_ASTRAL_FLOW) == 0)
                     {
                         int16 bloodBoonRate = getMod(Mod::BLOOD_BOON);
@@ -1212,48 +1219,6 @@ void CCharEntity::OnAbility(CAbilityState& state, action_t& action)
                 actionTarget.messageID = ability::GetAbsorbMessage(actionTarget.messageID);
                 actionTarget.param     = -value;
             }
-
-            //#TODO: move all of these to script!
-
-            //// Super Jump
-            // else if (PAbility->getID() == ABILITY_SUPER_JUMP)
-            //{
-            //    battleutils::jumpAbility(this, PTarget, 3);
-            //    action.messageID = 0;
-            //    this->loc.zone->PushPacket(this, CHAR_INRANGE_SELF, new CMessageBasicPacket(this, PTarget, PAbility->getID(), 0, MSGBASIC_USES_JA));
-            //}
-
-            //#TODO: move these 3 BST abilities to scripts
-            // if (PAbility->getID() == ABILITY_GAUGE) {
-            //    if (PTarget != nullptr && PTarget->objtype == TYPE_MOB) {
-            //        if (((CMobEntity*)PTarget)->m_Type & MOBTYPE_NOTORIOUS ||
-            //            PTarget->m_EcoSystem == SYSTEM_BEASTMEN ||
-            //            PTarget->m_EcoSystem == SYSTEM_ARCANA)
-            //        {
-            //            //NM, Beastman or Arcana, cannot charm at all !
-            //            this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_CANNOT_CHARM));
-            //        }
-            //        else {
-            //            uint16 baseExp = charutils::GetRealExp(this->GetMLevel(), PTarget->GetMLevel());
-
-            //            if (baseExp >= 400) {//IT
-            //                this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_VERY_DIFFICULT_CHARM));
-            //            }
-            //            else if (baseExp >= 240) {//VT
-            //                this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_DIFFICULT_TO_CHARM));
-            //            }
-            //            else if (baseExp >= 120) {//T
-            //                this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_MIGHT_BE_ABLE_CHARM));
-            //            }
-            //            else if (baseExp >= 100) {//EM
-            //                this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_SHOULD_BE_ABLE_CHARM));
-            //            }
-            //            else {
-            //                this->pushPacket(new CMessageBasicPacket(this, PTarget, 0, 0, MSGBASIC_SHOULD_BE_ABLE_CHARM));
-            //            }
-            //        }
-            //    }
-            //}
 
             state.ApplyEnmity();
         }
@@ -1472,11 +1437,11 @@ void CCharEntity::OnRangedAttack(CRangeState& state, action_t& action)
         // or else sleep effect won't work
         // battleutils::HandleRangedAdditionalEffect(this,PTarget,&Action);
         // TODO: move all hard coded additional effect ammo to scripts
-        if ((PAmmo != nullptr && battleutils::GetScaledItemModifier(this, PAmmo, Mod::ADDITIONAL_EFFECT) > 0) ||
-            (PItem != nullptr && battleutils::GetScaledItemModifier(this, PItem, Mod::ADDITIONAL_EFFECT) > 0))
+        if ((PAmmo != nullptr && battleutils::GetScaledItemModifier(this, PAmmo, Mod::ITEM_ADDEFFECT_TYPE) > 0) ||
+            (PItem != nullptr && battleutils::GetScaledItemModifier(this, PItem, Mod::ITEM_ADDEFFECT_TYPE) > 0))
         {
         }
-        luautils::OnAdditionalEffect(this, PTarget, (PAmmo != nullptr ? PAmmo : PItem), &actionTarget, totalDamage);
+        luautils::additionalEffectAttack(this, PTarget, (PAmmo != nullptr ? PAmmo : PItem), &actionTarget, totalDamage);
     }
     else if (shadowsTaken > 0)
     {
@@ -2209,10 +2174,106 @@ bool CCharEntity::OnAttackError(CAttackState& state)
 
 bool CCharEntity::isInEvent()
 {
-    return m_event.EventID != -1;
+    return currentEvent->eventId != -1;
 }
 
 bool CCharEntity::isNpcLocked()
 {
     return isInEvent() || inSequence;
+}
+
+
+void CCharEntity::endCurrentEvent()
+{
+    currentEvent->reset();
+    eventPreparation->reset();
+    setLocked(false);
+    m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
+    tryStartNextEvent();
+}
+
+void CCharEntity::queueEvent(EventInfo* eventToQueue)
+{
+    eventQueue.push_back(eventToQueue);
+    tryStartNextEvent();
+}
+
+void CCharEntity::tryStartNextEvent()
+{
+    if (isInEvent() || eventQueue.empty())
+        return;
+
+    EventInfo* oldEvent = currentEvent;
+    currentEvent        = eventQueue.front();
+    eventQueue.pop_front();
+    delete oldEvent;
+
+    eventPreparation->reset();
+
+    m_Substate = CHAR_SUBSTATE::SUBSTATE_IN_CS;
+    if (animation == ANIMATION_HEALING)
+    {
+        StatusEffectContainer->DelStatusEffect(EFFECT_HEALING);
+    }
+
+    if (PPet)
+    {
+        PPet->PAI->Disengage();
+    }
+
+    auto PNpc = currentEvent->targetEntity;
+    if (PNpc && PNpc->objtype == TYPE_NPC)
+    {
+        PNpc->SetLocalVar("pauseNPCPathing", 1);
+
+        if (PNpc->PAI->PathFind != nullptr)
+        {
+            PNpc->PAI->PathFind->Clear();
+        }
+    }
+
+    // If it's a cutsene, we lock the player immediately
+    setLocked(currentEvent->type == CUTSCENE);
+
+    if (currentEvent->strings.empty())
+    {
+        pushPacket(new CEventPacket(this, currentEvent));
+    }
+    else
+    {
+        pushPacket(new CEventStringPacket(this, currentEvent));
+    }
+}
+
+void CCharEntity::skipEvent()
+{
+    if (!m_Locked && !isInEvent() && (!currentEvent->cutsceneOptions.empty() || currentEvent->interruptText != 0))
+    {
+        pushPacket(new CMessageSystemPacket(0, 0, 117));
+        pushPacket(new CReleasePacket(this, RELEASE_TYPE::SKIPPING));
+        m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
+
+        if (currentEvent->interruptText != 0)
+        {
+            pushPacket(new CMessageTextPacket(currentEvent->targetEntity, currentEvent->interruptText, false));
+        }
+
+        endCurrentEvent();
+    }
+}
+
+void CCharEntity::setLocked(bool locked)
+{
+    m_Locked = locked;
+    if (locked)
+    {
+        // Player and pet enmity are handled in mobcontroler.cpp, CheckLock() fucntion.
+        // Mob casting interruption handled in magic_state.cpp, CMagicState::Update boolean.
+        PAI->Disengage();
+        if (PPet)
+        {
+            PPet->PAI->Disengage();
+        }
+        battleutils::RelinquishClaim(this);
+    }
 }

@@ -11,13 +11,13 @@ require('scripts/globals/items')
 require('scripts/globals/keyitems')
 require('scripts/globals/missions')
 require('scripts/globals/npc_util')
-require('scripts/globals/settings')
+require('scripts/settings/main')
 require('scripts/globals/titles')
 require('scripts/globals/interaction/mission')
 require('scripts/globals/zone')
 -----------------------------------
-local chateauID = require("scripts/zones/Chateau_dOraguille/IDs")
-local northernSandoriaID = require("scripts/zones/Northern_San_dOria/IDs")
+local chateauID          = require('scripts/zones/Chateau_dOraguille/IDs')
+local northernSandoriaID = require('scripts/zones/Northern_San_dOria/IDs')
 -----------------------------------
 
 local mission = Mission:new(xi.mission.log_id.BASTOK, xi.mission.id.bastok.THE_EMISSARY_SANDORIA)

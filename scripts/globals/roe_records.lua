@@ -3,7 +3,6 @@
 -----------------------------------
 require("scripts/globals/keyitems")
 require("scripts/globals/missions")
-require("scripts/globals/common")
 require("scripts/globals/quests")
 require("scripts/globals/status")
 require("scripts/globals/zone")
@@ -1582,7 +1581,7 @@ function getRoeRecords(triggers)
 
       [1370] = { -- Windurst Rank 8-2
           trigger = triggers.missionComplete,
-          reqs = { missionComplete = {xi.mission.log_id.WINDURST, xi.mission.id.windurst.THE_JESTER_WHO_D_BE_KING} },
+          reqs = { missionComplete = {xi.mission.log_id.WINDURST, xi.mission.id.windurst.THE_JESTER_WHOD_BE_KING} },
           flags = set{"retro"},
           reward = { item = { {4099,12} }, sparks = 300, xp = 500 },
       },

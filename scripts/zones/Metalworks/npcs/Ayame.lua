@@ -9,7 +9,7 @@ local ID = require("scripts/zones/Metalworks/IDs")
 require("scripts/globals/keyitems")
 require("scripts/globals/magic")
 require("scripts/globals/missions")
-require("scripts/globals/settings")
+require("scripts/settings/main")
 require("scripts/globals/quests")
 require("scripts/globals/status")
 require("scripts/globals/titles")
@@ -44,9 +44,7 @@ entity.onEventUpdate = function(player, csid, option)
 end
 
 entity.onEventFinish = function(player, csid, option)
-    if (csid == 712) then
-        finishMissionTimeline(player, 1, csid, option)
-    elseif (csid == 748) then
+    if (csid == 748) then
         player:addQuest(xi.quest.log_id.BASTOK, xi.quest.id.bastok.TRUE_STRENGTH)
     elseif (csid == 749) then
         if (player:getFreeSlotsCount() == 0) then

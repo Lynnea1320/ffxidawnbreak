@@ -9,9 +9,8 @@
 -----------------------------------
 require("scripts/globals/items")
 require("scripts/globals/keyitems")
-require("scripts/globals/settings")
+require("scripts/settings/main")
 require("scripts/globals/status")
-require("scripts/globals/common")
 require("scripts/globals/magic")
 require("scripts/globals/msg")
 require("scripts/globals/npc_util")
@@ -104,7 +103,7 @@ xi.znm.soultrapper.onItemUse = function(target, user, item)
     local zeni = xi.znm.soultrapper.getZeniValue(target, user, item)
 
     -- Pick a skill totally at random...
-    local skillIndex, skillEntry = utils.randomEntry(xi.pankration.feralSkills)
+    local skillIndex, skillEntry = utils.randomEntryIdx(xi.pankration.feralSkills)
 
     -- Add plate
     local plate = user:addSoulPlate(target:getName(), target:getFamily(), zeni, skillIndex, skillEntry.fp)

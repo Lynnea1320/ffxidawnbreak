@@ -41,6 +41,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include "entities/mobentity.h"
 #include "entities/npcentity.h"
 #include "entities/trustentity.h"
+#include "enmity_container.h"
 #include "item_container.h"
 #include "latent_effect_container.h"
 #include "linkshell.h"
@@ -380,7 +381,7 @@ void SmallPacket0x00A(map_session_data_t* const PSession, CCharEntity* const PCh
     }
 
     PChar->pushPacket(new CDownloadingDataPacket());
-    PChar->pushPacket(new CZoneInPacket(PChar, PChar->m_event.EventID));
+    PChar->pushPacket(new CZoneInPacket(PChar, PChar->currentEvent->eventId));
     PChar->pushPacket(new CZoneVisitedPacket(PChar));
 
     PChar->PAI->QueueAction(queueAction_t(400ms, false, luautils::AfterZoneIn));
@@ -763,7 +764,7 @@ void SmallPacket0x01A(map_session_data_t* const PSession, CCharEntity* const PCh
 
             if (!PChar->isNpcLocked())
             {
-                PChar->m_event.reset();
+                PChar->eventPreparation->reset();
                 PChar->pushPacket(new CReleasePacket(PChar, RELEASE_TYPE::STANDARD));
             }
         }
@@ -1030,7 +1031,15 @@ void SmallPacket0x01A(map_session_data_t* const PSession, CCharEntity* const PCh
                     return;
                 }
 
-                PChar->StatusEffectContainer->AddStatusEffect(new CStatusEffect(EFFECT_MOUNTED, EFFECT_MOUNTED, (MountID ? ++MountID : 0), 0, 1800), true);
+                PChar->StatusEffectContainer->AddStatusEffect(new CStatusEffect(
+                    EFFECT_MOUNTED,
+                    EFFECT_MOUNTED,
+                    MountID ? ++MountID : 0,
+                    0,
+                    1800,
+                    0,
+                    FLAG_CHOCOBO), true);
+
                 PChar->PRecastContainer->Add(RECAST_ABILITY, 256, 60);
                 PChar->pushPacket(new CCharRecastPacket(PChar));
             }
@@ -1071,6 +1080,43 @@ void SmallPacket0x01C(map_session_data_t* const PSession, CCharEntity* const PCh
 {
     TracyZoneScoped;
     PrintPacket(std::move(data));
+}
+
+/************************************************************************
+ *                                                                       *
+ *  /volunteer packet                                                    *
+ *                                                                       *
+ ************************************************************************/
+
+void SmallPacket0x01E(map_session_data_t* const PSession, CCharEntity* const PChar, CBasicPacket data)
+{
+    TracyZoneScoped;
+
+    // It sends out a packet of type 0x1E, where the body is a 4 - byte aligned string
+    //
+    // "/volunteer Volunteer what" without anything targeted results in:
+    // 1E0A6405566F6C756E7465657220776861740000 -> Volunteer what\0\0
+    //
+    // "/volunteer I choose you" with a Savanna Rarab targeted results in:
+    // 1E127505492063686F6F736520796F7520543120536176616E6E61205261726162000000 -> I choose you T1 Savanna Rarab\0\0\0
+    //
+    // "/volunteer hello" with no target -> 1e 06 17 00 68 65 6c 6c 6f 00 00 00
+    // "/volunteer test" with no target -> 1e 06 92 00 74 65 73 74 00 00 00 00
+    //
+    // id - length - seq - 00 - content -- null terminators/padding
+
+    const uint8 HEADER_LENGTH = 4;
+
+    std::vector<char> chars;
+    std::for_each(data[HEADER_LENGTH], data[HEADER_LENGTH] + (data.length() - HEADER_LENGTH), [&](char ch)
+    {
+        if ((ch >= 0 && ch < 128) && ch != '\0') // isascii && nonnull
+        {
+            chars.emplace_back(ch);
+        }
+    });
+    auto str = std::string(chars.begin(), chars.end());
+    luautils::OnPlayerVolunteer(PChar, str);
 }
 
 /************************************************************************
@@ -2062,6 +2108,19 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         return;
     }
 
+    if (PChar->animation == ANIMATION_SYNTH)
+    {
+        ShowExploit("SmallPacket0x04D: %s attempting to access delivery box in the middle of a synth!", PChar->GetName());
+        return;
+    }
+
+    if ((PChar->animation >= ANIMATION_FISHING_FISH && PChar->animation <= ANIMATION_FISHING_STOP) ||
+        PChar->animation == ANIMATION_FISHING_START_OLD || PChar->animation == ANIMATION_FISHING_START)
+    {
+        ShowExploit("SmallPacket0x04D: %s attempting to access delivery box while fishing!", PChar->GetName());
+        return;
+    }
+
     // 0x01 - Send old items..
     // 0x02 - Add items to be sent..
     // 0x03 - Send confirmation..
@@ -2082,6 +2141,12 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
     {
         case 0x01:
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             const char* fmtQuery = "SELECT itemid, itemsubid, slot, quantity, sent, extra, sender, charname FROM delivery_box WHERE charid = %u AND box = %d "
                                    "AND slot < 8 ORDER BY slot;";
 
@@ -2137,9 +2202,16 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x02: // add items to send box
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             uint8  invslot  = data.ref<uint8>(0x07);
             uint32 quantity = data.ref<uint32>(0x08);
-            CItem* PItem    = PChar->getStorage(LOC_INVENTORY)->GetItem(invslot);
+
+            CItem* PItem = PChar->getStorage(LOC_INVENTORY)->GetItem(invslot);
 
             if (quantity > 0 && PItem && PItem->getQuantity() >= quantity && PChar->UContainer->IsSlotEmpty(slotID))
             {
@@ -2194,6 +2266,12 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x03: // send items
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             uint8 send_items = 0;
             for (int i = 0; i < 8; i++)
             {
@@ -2257,6 +2335,7 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         {
             if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
             {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
                 return;
             }
 
@@ -2336,6 +2415,7 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
             // Send the player the new items count not seen..
             if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
             {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
                 return;
             }
 
@@ -2372,6 +2452,12 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x06: // Move item to received
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             if (boxtype == 1)
             {
                 bool isAutoCommitOn = Sql_GetAutoCommit(SqlHandle);
@@ -2450,6 +2536,12 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x07: // remove received items from send box
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             uint8 received_items = 0;
             uint8 slotID         = 0;
 
@@ -2482,15 +2574,27 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x08:
         {
-            if (PChar->UContainer->GetType() == UCONTAINER_DELIVERYBOX && !PChar->UContainer->IsSlotEmpty(slotID))
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
+            if (!PChar->UContainer->IsSlotEmpty(slotID))
             {
                 PChar->pushPacket(new CDeliveryBoxPacket(action, boxtype, PChar->UContainer->GetItem(slotID), slotID, 1, 1));
             }
+
             return;
         }
         case 0x09: // Option: Return
         {
-            if (PChar->UContainer->GetType() == UCONTAINER_DELIVERYBOX && !PChar->UContainer->IsSlotEmpty(slotID))
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+            if (!PChar->UContainer->IsSlotEmpty(slotID))
             {
                 bool isAutoCommitOn = Sql_GetAutoCommit(SqlHandle);
                 bool commit         = false; // When in doubt back it out.
@@ -2555,7 +2659,13 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x0A: // Option: Take
         {
-            if (PChar->UContainer->GetType() == UCONTAINER_DELIVERYBOX && !PChar->UContainer->IsSlotEmpty(slotID))
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
+            if (!PChar->UContainer->IsSlotEmpty(slotID))
             {
                 bool isAutoCommitOn = Sql_GetAutoCommit(SqlHandle);
                 bool commit         = false;
@@ -2621,7 +2731,13 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x0B: // Option: Drop
         {
-            if (PChar->UContainer->GetType() == UCONTAINER_DELIVERYBOX && !PChar->UContainer->IsSlotEmpty(slotID))
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
+            if (!PChar->UContainer->IsSlotEmpty(slotID))
             {
                 int32 ret = Sql_Query(SqlHandle, "DELETE FROM delivery_box WHERE charid = %u AND slot = %u AND box = 1 LIMIT 1", PChar->id, slotID);
 
@@ -2638,6 +2754,12 @@ void SmallPacket0x04D(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         case 0x0C: // Confirm name (send box)
         {
+            if (PChar->UContainer->GetType() != UCONTAINER_DELIVERYBOX)
+            {
+                ShowExploit("Delivery Box packet handler received action %u while UContainer is in a state other than UCONTAINER_DELIVERYBOX (%s)", action, PChar->GetName());
+                return;
+            }
+
             int32 ret = Sql_Query(SqlHandle, "SELECT accid FROM chars WHERE charname = '%s' LIMIT 1", data[0x10]);
 
             if (ret != SQL_ERROR && Sql_NumRows(SqlHandle) > 0 && Sql_NextRow(SqlHandle) == SQL_SUCCESS)
@@ -3182,31 +3304,38 @@ void SmallPacket0x05A(map_session_data_t* const PSession, CCharEntity* const PCh
 void SmallPacket0x05B(map_session_data_t* const PSession, CCharEntity* const PChar, CBasicPacket data)
 {
     TracyZoneScoped;
+
+    if (!PChar->isInEvent())
+        return;
+
     // auto CharID = data.ref<uint32>(0x04);
     auto Result = data.ref<uint32>(0x08);
     // auto ZoneID = data.ref<uint16>(0x10);
     auto EventID = data.ref<uint16>(0x12);
 
-    PrintPacket(data);
-    if (PChar->m_event.EventID == EventID)
+    if (PChar->currentEvent->eventId == EventID)
     {
-        if (PChar->m_event.Option != 0)
+        if (PChar->currentEvent->option != 0)
         {
-            Result = PChar->m_event.Option;
+            Result = PChar->currentEvent->option;
         }
 
         if (data.ref<uint8>(0x0E) != 0)
         {
+            // If optional cutscene is started, we check to see if the selected option should lock the player
+            if (Result != -1 && PChar->currentEvent->hasCutsceneOption(Result))
+            {
+                PChar->setLocked(true);
+            }
             luautils::OnEventUpdate(PChar, EventID, Result);
         }
         else
         {
             luautils::OnEventFinish(PChar, EventID, Result);
             // reset if this event did not initiate another event
-            if (PChar->m_event.EventID == EventID)
+            if (PChar->currentEvent->eventId == EventID)
             {
-                PChar->m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
-                PChar->m_event.reset();
+                PChar->endCurrentEvent();
             }
         }
     }
@@ -3224,14 +3353,16 @@ void SmallPacket0x05B(map_session_data_t* const PSession, CCharEntity* const PCh
 void SmallPacket0x05C(map_session_data_t* const PSession, CCharEntity* const PChar, CBasicPacket data)
 {
     TracyZoneScoped;
+
+    if (!PChar->isInEvent())
+        return;
+
     // auto CharID = data.ref<uint32>(0x10);
     auto Result = data.ref<uint32>(0x14);
     // auto ZoneID = data.ref<uint16>(0x18);
-
     auto EventID = data.ref<uint16>(0x1A);
 
-    PrintPacket(data);
-    if (PChar->m_event.EventID == EventID)
+    if (PChar->currentEvent->eventId == EventID)
     {
         bool updatePosition = false;
 
@@ -3241,11 +3372,11 @@ void SmallPacket0x05C(map_session_data_t* const PSession, CCharEntity* const PCh
         }
         else
         {
+            PChar->m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
             updatePosition = luautils::OnEventFinish(PChar, EventID, Result) == 1;
-            if (PChar->m_event.EventID == EventID)
+            if (PChar->currentEvent->eventId == EventID)
             {
-                PChar->m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
-                PChar->m_event.reset();
+                PChar->endCurrentEvent();
             }
         }
 
@@ -3297,8 +3428,43 @@ void SmallPacket0x05D(map_session_data_t* const PSession, CCharEntity* const PCh
 
     const auto extra = data.ref<uint16>(0x0C);
 
+    // Attempting to use bell emote without a bell.
+    if (EmoteID == Emote::BELL)
+    {
+        auto IsBell = [](uint16 itemId)
+        {
+            // Dream Bell, Dream Bell +1, Lady Bell, Lady Bell +1
+            return (itemId == 18863 || itemId == 18864 || itemId == 18868 || itemId == 18869);
+        };
+
+        // This is the actual observed behavior. Even with a different weapon type equipped,
+        // having a bell in the lockstyle is sufficient. On the other hand, if any other
+        // weapon is lockstyle'd over an equipped bell, the emote will be rejected.
+        // For what it's worth, geomancer bells don't count as a bell for this emote.
+
+        // Look for a bell in the style.
+        auto mainWeapon = PChar->styleItems[SLOT_MAIN];
+        if (mainWeapon == 0)
+        {
+            // Nothing equipped in the style, look at what's actually equipped.
+            mainWeapon = PChar->getEquip(SLOT_MAIN) != nullptr
+                ? PChar->getEquip(SLOT_MAIN)->getID() : 0;
+        }
+
+        if (!IsBell(mainWeapon))
+        {
+            // Bell not found.
+            return;
+        }
+
+        if (extra < 0x06 || extra > 0x1e)
+        {
+            // Invalid note.
+            return;
+        }
+    }
     // Attempting to use locked job emote.
-    if (EmoteID == Emote::JOB && extra && !(PChar->jobs.unlocked & (1 << (extra - 0x1E))))
+    else if (EmoteID == Emote::JOB && extra && !(PChar->jobs.unlocked & (1 << (extra - 0x1E))))
     {
         return;
     }
@@ -3949,7 +4115,7 @@ void SmallPacket0x071(map_session_data_t* const PSession, CCharEntity* const PCh
             if (PChar->PParty && PChar->PParty->GetLeader() == PChar && PChar->PParty->m_PAlliance)
             {
                 CCharEntity* PVictim = nullptr;
-                for (uint8 i = 0; i < PChar->PParty->m_PAlliance->partyList.size(); ++i)
+                for (std::size_t i = 0; i < PChar->PParty->m_PAlliance->partyList.size(); ++i)
                 {
                     PVictim = (CCharEntity*)(PChar->PParty->m_PAlliance->partyList[i]->GetMemberByName(data[0x0C]));
                     if (PVictim && PVictim->PParty && PVictim->PParty->m_PAlliance) // victim is in this party
@@ -6555,7 +6721,7 @@ void SmallPacket0x102(map_session_data_t* const PSession, CCharEntity* const PCh
                         return;
                     }
 
-                    blueutils::SetBlueSpell(PChar, spell, spellIndex, (spellToAdd > 0));
+                    blueutils::SetBlueSpell(PChar, spell, spellIndex, true);
                     charutils::BuildingCharTraitsTable(PChar);
                     PChar->pushPacket(new CCharAbilitiesPacket(PChar));
                     PChar->pushPacket(new CCharJobExtraPacket(PChar, true));
@@ -6632,7 +6798,7 @@ void SmallPacket0x104(map_session_data_t* const PSession, CCharEntity* const PCh
 
     if (PTarget != nullptr && PTarget->id == PChar->BazaarID.id)
     {
-        for (uint16 i = 0; i < PTarget->BazaarCustomers.size(); ++i)
+        for (std::size_t i = 0; i < PTarget->BazaarCustomers.size(); ++i)
         {
             if (PTarget->BazaarCustomers[i].id == PChar->id)
             {
@@ -6784,7 +6950,7 @@ void SmallPacket0x106(map_session_data_t* const PSession, CCharEntity* const PCh
                 break;
             }
         }
-        for (uint16 i = 0; i < PTarget->BazaarCustomers.size(); ++i)
+        for (std::size_t i = 0; i < PTarget->BazaarCustomers.size(); ++i)
         {
             CCharEntity* PCustomer = (CCharEntity*)PTarget->GetEntity(PTarget->BazaarCustomers[i].targid, TYPE_PC);
 
@@ -6878,7 +7044,7 @@ void SmallPacket0x10A(map_session_data_t* const PSession, CCharEntity* const PCh
 void SmallPacket0x10B(map_session_data_t* const PSession, CCharEntity* const PChar, CBasicPacket data)
 {
     TracyZoneScoped;
-    for (uint16 i = 0; i < PChar->BazaarCustomers.size(); ++i)
+    for (std::size_t i = 0; i < PChar->BazaarCustomers.size(); ++i)
     {
         CCharEntity* PCustomer = (CCharEntity*)PChar->GetEntity(PChar->BazaarCustomers[i].targid, TYPE_PC);
 
@@ -7201,6 +7367,7 @@ void PacketParserInitialize()
     PacketSize[0x01A] = 0x0E; PacketParser[0x01A] = &SmallPacket0x01A;
     PacketSize[0x01B] = 0x00; PacketParser[0x01B] = &SmallPacket0x01B;
     PacketSize[0x01C] = 0x00; PacketParser[0x01C] = &SmallPacket0x01C;
+    PacketSize[0x01E] = 0x00; PacketParser[0x01E] = &SmallPacket0x01E;
     PacketSize[0x028] = 0x06; PacketParser[0x028] = &SmallPacket0x028;
     PacketSize[0x029] = 0x06; PacketParser[0x029] = &SmallPacket0x029;
     PacketSize[0x032] = 0x06; PacketParser[0x032] = &SmallPacket0x032;

@@ -10,7 +10,7 @@ require("scripts/globals/missions")
 require("scripts/globals/npc_util")
 require("scripts/globals/quests")
 require("scripts/globals/roe")
-require("scripts/globals/settings")
+require("scripts/settings/main")
 require("scripts/globals/status")
 require("scripts/globals/zone")
 require("scripts/missions/amk/helpers")
@@ -308,6 +308,17 @@ local helmInfo =
                     { 179.928, -17.122, -286.430},
                     { 219.698,  -5.833, -307.260},
                     { 276.849,  16.356, -406.434},
+                },
+            },
+            [xi.zone.YAHSE_HUNTING_GROUNDS] =
+            {
+                drops =
+                {
+                    -- TODO
+                },
+                points =
+                {
+                    -- TODO
                 },
             },
         },

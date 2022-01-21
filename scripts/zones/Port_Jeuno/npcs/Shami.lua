@@ -5,7 +5,7 @@
 -- !pos -53.9 0 10.8 246
 -----------------------------------
 local ID = require("scripts/zones/Port_Jeuno/IDs")
-require("scripts/globals/settings")
+require("scripts/settings/main")
 require("scripts/globals/npc_util")
 require("scripts/globals/quests")
 require("scripts/globals/utils")
@@ -114,8 +114,11 @@ entity.onTrigger = function(player, npc)
     local sacredKindredsCrest = player:getSeals(4)
     local wildcatJeuno = player:getCharVar("WildcatJeuno")
 
-    -- TODO: player:startEvent(322, 0, 0, 0, 0, 1, 0, 1) -- First time talking to him WITH  beastmen seal in inventory
-    if player:getQuestStatus(xi.quest.log_id.JEUNO, xi.quest.id.jeuno.LURE_OF_THE_WILDCAT) == QUEST_ACCEPTED and not utils.mask.getBit(wildcatJeuno, 17) then
+    -- TODO: player:startEvent(322, 0, 0, 0, 0, 1, 0, 1) -- First time talking to him WITH beastmen seal in inventory
+    if
+        player:getQuestStatus(xi.quest.log_id.JEUNO, xi.quest.id.jeuno.LURE_OF_THE_WILDCAT) == QUEST_ACCEPTED and
+        not utils.mask.getBit(wildcatJeuno, 17)
+    then
         player:startEvent(317)
     elseif beastmensSeal + kindredsSeal + kindredsCrest + highKindredsCrest + sacredKindredsCrest == 0 then
         player:startEvent(23) -- Standard dialog ?
