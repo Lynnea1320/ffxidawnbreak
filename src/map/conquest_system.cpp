@@ -673,11 +673,41 @@ namespace conquest
             double percentage = PChar->profile.nation == GetRegionOwner(region) ? 0.1 : 0.15;
             percentage += PChar->getMod(Mod::CONQUEST_BONUS) / 100.0;
             uint32 points = (uint32)(exp * percentage);
+            uint8  rank   = conquest::GetBalance();
 
+            switch (PChar->profile.nation)
+            {
+                case 0: //San d'Oria
+                    rank &= 0x3U;
+                    break;
+                case 1: //Bastok
+                    rank &= 0xCU;
+                    rank >>= 2;
+                    break;
+                case 2: // Windurst
+                    rank >>= 4;
+                    break;
+                default:
+                    break;
+            }
             charutils::AddPoints(PChar, charutils::GetConquestPointsName(PChar).c_str(), points);
-            GainInfluencePoints(PChar, points / 2);
+            if (rank == 1)
+            {
+                GainInfluencePoints(PChar, (uint32)round(points / 2.3));
+                return 0;
+            }
+            if (rank == 2)
+            {
+                GainInfluencePoints(PChar, points / 2);
+                return 0;
+            }
+            if (rank == 3)
+            {
+                GainInfluencePoints(PChar, (uint32)round(points / 1.5));
+                return 0;
+            }
         }
-        return 0; // added conquest points (пока не вижу в этом определенного смысла)
+        return 0;
     }
 
     // GetConquestInfluence(region,nation)
