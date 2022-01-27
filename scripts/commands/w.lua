@@ -16,7 +16,7 @@ end
 
 function onTrigger(player, msg)
     if msg == nil then
-        error(player, "Cannot send an empty message because then it's not a message, it's just you fucking around.")
+        error(player, "Cannot send an empty message.")
     else
         if player:getGMLevel() == 2 then
             player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[GM]%s", player:getName()))
