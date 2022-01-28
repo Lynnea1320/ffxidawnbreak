@@ -74,6 +74,7 @@ entity.onEventFinish = function(player, csid, option)
         player:unlockJob(0)
         player:setCharVar("IsacioElderMemVar", 0)
         player:messageSpecial(ID.text.SUBJOB_UNLOCKED)
+		if player:getContainerSize(xi.inv.WARDROBE) not >= 30 then player:changeContainerSize(xi.inv.WARDROBE, 30) end
         player:completeQuest(xi.quest.log_id.OTHER_AREAS, xi.quest.id.otherAreas.ELDER_MEMORIES)
     end
 end
