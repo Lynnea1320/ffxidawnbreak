@@ -222,3 +222,5 @@ memcheck.out.*
 /src/common/version.cpp
 
 settings.ini
+
+*.bak
