@@ -19,13 +19,13 @@ function onTrigger(player, msg)
         error(player, "Cannot send an empty message.")
     else
         if player:getGMLevel() == 2 then
-            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JUDGE]%s", player:getName()))
+            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JDG]%s", player:getName()))
         elseif player:getGMLevel() == 3 then
-            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JUDGEMASTER]%s", player:getName()))
+            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JMSTR]%s", player:getName()))
         elseif player:getGMLevel() == 4 then
-            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JUDGELORD]%s", player:getName()))
+            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JLORD]%s", player:getName()))
         elseif player:getGMLevel() >= 5 then
-            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JUDGEQUEEN]%s", player:getName()))
+            player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, string.format("[JQUEEN]%s", player:getName()))
         else
             player:PrintToArea(string.format("%s", msg), xi.msg.channel.YELL, xi.msg.area.SERVER, player:getName())
         end
