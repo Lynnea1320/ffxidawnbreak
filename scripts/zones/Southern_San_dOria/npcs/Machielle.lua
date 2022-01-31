@@ -23,6 +23,7 @@ entity.onTrigger = function(player, npc)
             621, 25,    -- Crying Mustard
             618, 25,    -- Blue Peas
             698, 88,    -- Ash Log
+            10055, 7000, --♪tiger
         }
 
         player:showText(npc, ID.text.MACHIELLE_OPEN_DIALOG)
