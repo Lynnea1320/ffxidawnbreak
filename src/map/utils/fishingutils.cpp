@@ -79,8 +79,8 @@ namespace fishingutils
     void StartFishing(CCharEntity* PChar)
     {
         // NOTE: Fishing is disabled until further notice, since it is a security liability.
-        ShowWarning("Fishing is currently disabled");
-        return;
+        //ShowWarning("Fishing is currently disabled");
+        //return; 
 
         if (PChar->animation != ANIMATION_NONE)
         {
@@ -379,8 +379,8 @@ namespace fishingutils
 
     void FishingAction(CCharEntity* PChar, FISH_ACTION action, uint16 stamina, uint32 special)
     {
-        ShowWarning("Fishing is currently disabled");
-        return;
+        //ShowWarning("Fishing is currently disabled");
+        //return;
 
         uint16 MessageOffset = GetMessageOffset(PChar->getZone());
 
