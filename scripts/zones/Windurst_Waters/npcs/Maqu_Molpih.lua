@@ -28,7 +28,8 @@ entity.onTrigger = function(player, npc)
             629,    44,  -- Millioncorn
             4415,  114,  -- Roasted Corn
             4505,   92,  -- Sunflower Seeds
-            841,    36   -- Yagudo Feather
+            841,    36,   -- Yagudo Feather
+           10058, 7000,  -- ♪Beetle
         }
         xi.shop.general(player, stock, WINDURST)
 

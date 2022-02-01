@@ -21,6 +21,7 @@ entity.onTrigger = function(player, npc)
             4571, 90,    -- Beaugreens
             4363, 39,    -- Faerie Apple
             691,  54,    -- Maple Log
+        10060, 12800,    -- ♪Magic Pot
         }
 
         player:showText(npc, ID.text.SHEIAPOHRICHAMAHA_OPEN_DIALOG)

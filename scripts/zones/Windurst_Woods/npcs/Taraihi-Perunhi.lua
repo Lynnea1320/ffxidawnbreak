@@ -29,7 +29,8 @@ entity.onTrigger = function(player, npc)
             4545,   62, -- Gysahl Greens
             1412, 1656, -- Olive Flower
             633,    14, -- Olive Oil
-            951,   110  -- Wijnruit
+            951,   110, -- Wijnruit
+           10069, 7000, -- ♪Goobbue
         }
         xi.shop.general(player, stock, WINDURST)
     end

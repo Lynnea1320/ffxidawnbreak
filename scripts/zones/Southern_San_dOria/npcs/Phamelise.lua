@@ -26,6 +26,7 @@ entity.onTrigger = function(player, npc)
             1840, 1840,    -- Semolina
             4366,   22,    -- La Theine Cabbage
             4378,   55,    -- Selbina Milk
+           10051, 7000,    -- ♪Crab
         }
 
         player:showText(npc, ID.text.PHAMELISE_OPEN_DIALOG)

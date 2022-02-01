@@ -23,6 +23,7 @@ entity.onTrigger = function(player, npc)
             628,   239,    -- Cinnamon
             4468,   73,    -- Pamamas
             721,   147,    -- Rattan Lumber
+          10053, 12800,    -- ♪Bomb
         }
 
         player:showText(npc, ID.text.DHENTEVRYUKOH_OPEN_DIALOG)

@@ -24,6 +24,7 @@ entity.onTrigger = function(player, npc)
             864,    88,    -- Fish Scales
             936,    14,    -- Rock Salt
             1410, 1656,     -- Sweet William
+          10052, 12800,    -- ♪Red Crab
         }
 
         player:showText(npc, ID.text.AULAVIA_OPEN_DIALOG)

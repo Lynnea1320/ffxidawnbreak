@@ -26,7 +26,8 @@ entity.onTrigger = function(player, npc)
         {
             916,   855,  -- Cactuar Needle
             4412,  299,  -- Thundermelon
-            4491,  184   -- Watermelon
+            4491,  184,   -- Watermelon
+          10073, 12800,   -- ♪Dhalmel
         }
         xi.shop.general(player, stock, WINDURST)
     end

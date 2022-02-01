@@ -22,7 +22,8 @@ entity.onTrigger = function(player, npc)
             1120, 1620,    --Casablanca
             4359,  220,    --Dhalmel Meat
             614,    72,    --Mhaura Garlic
-            4445,   40,     --Yagudo Cherry
+            4445,   40,    --Yagudo Cherry
+           10056, 7000,    --♪Crawler
         }
 
         player:showText(npc, ID.text.YAFAFA_OPEN_DIALOG)

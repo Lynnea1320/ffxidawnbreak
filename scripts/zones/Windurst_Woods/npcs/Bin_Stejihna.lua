@@ -29,7 +29,8 @@ entity.onTrigger = function(player, npc)
             610,     55,  -- San d'Orian Flour
             611,     36,  -- Rye Flour
             4366,    22,  -- La Theine Cabbage
-            4378,    55   -- Selbina Milk
+            4378,    55,  -- Selbina Milk
+           10051,  7000,  -- ♪Crab
         }
 
         local rank = GetNationRank(xi.nation.WINDURST)

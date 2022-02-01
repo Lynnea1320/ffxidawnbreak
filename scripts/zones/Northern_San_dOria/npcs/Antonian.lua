@@ -25,6 +25,7 @@ entity.onTrigger = function(player, npc)
             4415, 111,    -- Roasted Corn
             841,   36,    -- Yagudo Feather
             4505,  90,    -- Sunflower Seeds
+          10058, 7000,    -- ♪Beetle
         }
 
         player:showText(npc, ID.text.ANTONIAN_OPEN_DIALOG)

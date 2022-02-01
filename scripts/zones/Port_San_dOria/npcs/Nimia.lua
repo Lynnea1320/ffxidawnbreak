@@ -24,6 +24,7 @@ entity.onTrigger = function(player, npc)
             630,    88,    -- Ogre Pumpkin
             632,   110,    -- Kukuru Bean
             1411, 1656,    -- Phalaenopsis
+          10055, 12800,    -- ♪Morbol
         }
 
         player:showText(npc, ID.text.NIMIA_OPEN_DIALOG)

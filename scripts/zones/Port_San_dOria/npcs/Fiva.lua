@@ -22,6 +22,7 @@ entity.onTrigger = function(player, npc)
             4359,  220,    -- Dhalmel Meat
             614,    72,    -- Mhaura Garlic
             4445,   40,    -- Yagudo Cherry
+            10056, 7000,    --♪Crawler
         }
 
         player:showText(npc, ID.text.FIVA_OPEN_DIALOG)

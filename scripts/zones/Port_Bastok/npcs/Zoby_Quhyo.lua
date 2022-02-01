@@ -25,6 +25,7 @@ entity.onTrigger = function(player, npc)
             4390,   36,    -- Mithran Tomato
             630,    88,    -- Ogre Pumpkin
             1411, 1656,    -- Phalaenopsis
+          10055, 12800,    -- ♪Morbol
         }
 
         player:showText(npc, ID.text.ZOBYQUHYO_OPEN_DIALOG)

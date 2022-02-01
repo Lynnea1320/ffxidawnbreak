@@ -24,6 +24,7 @@ entity.onTrigger = function(player, npc)
             1412, 1656,    -- Olive Flower
             633,    14,    -- Olive Oil
             951,   110,    -- Wijnruit
+           10069, 7000,    -- ♪Goobbue
         }
 
         player:showText(npc, ID.text.BELKA_OPEN_DIALOG)

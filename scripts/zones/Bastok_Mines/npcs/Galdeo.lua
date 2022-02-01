@@ -20,6 +20,7 @@ entity.onTrigger = function(player, npc)
         {
             623,   119,    -- Bay Leaves
             4154, 6440,    -- Holy Water
+          10068, 12800,    -- ♪Coeurl
         }
 
         player:showText(npc, ID.text.GALDEO_OPEN_DIALOG)

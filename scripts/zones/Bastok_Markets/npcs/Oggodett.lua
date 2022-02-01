@@ -23,6 +23,7 @@ entity.onTrigger = function(player, npc)
             4415,  111,    -- Roasted Corn
             4505,   90,    -- Sunflower Seeds
             841,    36,     -- Yagudo Feather
+           10058, 7000,    -- ♪Beetle
         }
 
         player:showText(npc, ID.text.OGGODETT_OPEN_DIALOG)
