@@ -24,6 +24,7 @@ entity.onTrigger = function(player, npc)
         17035,  4363, 2,    -- Mace
         17059,    90, 3,    -- Bronze Rod
         17034,   169, 3,    -- Bronze Mace
+        16833,   913, 3,    -- Bronze Spear
         16845, 16578, 3,    -- Lance
     }
 
