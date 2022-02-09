@@ -13,5 +13,5 @@ cmdprops =
 }
 
 function onTrigger(player)
-    player:PrintToPlayer(string.format("Your chocobo digging skill is %i.", player:getCharSkillLevel(xi.skill.DIG)/10), xi.msg.channel.SYSTEM_3)
+    player:PrintToPlayer(string.format("Your chocobo digging skill is %.1f.", player:getCharSkillLevel(xi.skill.DIG)/10), xi.msg.channel.SYSTEM_3)
 end
