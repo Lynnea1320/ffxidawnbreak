@@ -26,8 +26,8 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 
 CCaughtMonsterPacket::CCaughtMonsterPacket(CCharEntity * PChar,  uint16 messageID)
 {
-	this->type = 0x43;
-	this->size = 0x20;
+	this->setType(0x43);
+	this->setSize(0x20);
 
     ref<uint32>(0x04) = PChar->id;
     ref<uint32>(0x08) = PChar->targid;

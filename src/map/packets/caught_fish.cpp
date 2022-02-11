@@ -26,8 +26,8 @@
 
 CCaughtFishPacket::CCaughtFishPacket(CCharEntity * PChar, uint16 param0, uint16 messageID, uint8 count) 
 {
-    this->type = 0x27;
-    this->size = 0x38;
+    this->setType(0x27);
+    this->setSize(0x38);
 
     ref<uint32>(0x04) = PChar->id;
     ref<uint32>(0x08) = PChar->targid;
