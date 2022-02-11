@@ -39,6 +39,7 @@
 #include "../packets/message_system.h"
 #include "../packets/message_text.h"
 #include "../packets/release.h"
+#include "../packets/chat_message.h"
 
 #include "../entities/battleentity.h"
 #include "../entities/mobentity.h"
