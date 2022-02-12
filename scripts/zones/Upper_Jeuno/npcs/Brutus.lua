@@ -84,6 +84,8 @@ entity.onEventFinish = function(player, csid, option)
         npcUtil.completeQuest(player, JEUNO, xi.quest.id.jeuno.PATH_OF_THE_BEASTMASTER, {title = xi.title.ANIMAL_TRAINER})
         player:unlockJob(xi.job.BST)
         player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME_A_BEASTMASTER)
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
 
     -- WINGS OF GOLD
     elseif (csid == 137 or csid == 139) and option == 1 then

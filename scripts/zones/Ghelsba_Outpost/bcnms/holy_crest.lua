@@ -46,6 +46,8 @@ battlefield_object.onEventFinish = function(player, csid, option)
         player:unlockJob(xi.job.DRG)
         player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME_A_DRAGOON)
         player:setPetName(xi.pet.type.WYVERN, option + 1)
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
     end
 end
 

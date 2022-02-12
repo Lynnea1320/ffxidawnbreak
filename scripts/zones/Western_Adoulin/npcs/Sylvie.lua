@@ -83,6 +83,8 @@ entity.onEventFinish = function(player, csid, option)
             player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME, 0)  -- You can now become a geomancer!
             npcUtil.giveKeyItem(player, xi.ki.JOB_GESTURE_GEOMANCER)
             player:setCharVar("GEO_DWL_Luopan", 0)
+            player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+            player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
             player:completeQuest(xi.quest.log_id.ADOULIN, xi.quest.id.adoulin.DANCES_WITH_LUOPANS)
         end
     end

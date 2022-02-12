@@ -74,7 +74,7 @@ entity.onEventFinish = function(player, csid, option)
         player:messageSpecial(ID.text.SUBJOB_UNLOCKED)
         if player:getContainerSize(xi.inv.WARDROBE) < 80 then 
             player:changeContainerSize(xi.inv.WARDROBE, 80)
-            player:PrintToPlayer(string.format("Your Mog Wardrobe size has increased to ", player:getContainerSize(xi.inv.WARDROBE)), xi.msg.SYSTEM_3)
+            player:PrintToPlayer(string.format("Your Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE)), xi.msg.channel.SYSTEM_3)
         end
         player:completeQuest(xi.quest.log_id.OTHER_AREAS, xi.quest.id.otherAreas.THE_OLD_LADY)
     end
