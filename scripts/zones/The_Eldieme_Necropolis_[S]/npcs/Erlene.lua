@@ -104,6 +104,8 @@ entity.onEventFinish = function(player, csid, option)
         player:setCharVar("ALittleKnowledge", 0)
         player:setCharVar("SheetsofVellum", 0)
         player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME_A_SCHOLAR)
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
         player:completeQuest(xi.quest.log_id.CRYSTAL_WAR, xi.quest.id.crystalWar.A_LITTLE_KNOWLEDGE)
     elseif (csid == 47) then
         if (player:canLearnSpell(478) and player:canLearnSpell(502)) then

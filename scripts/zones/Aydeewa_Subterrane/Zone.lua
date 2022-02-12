@@ -47,6 +47,8 @@ zone_object.onEventFinish = function(player, csid, option)
         npcUtil.completeQuest(player, AHT_URHGAN, xi.quest.id.ahtUrhgan.AN_EMPTY_VESSEL, {title=xi.title.BEARER_OF_THE_MARK_OF_ZAHAK, ki=xi.ki.MARK_OF_ZAHAK, var={"AnEmptyVesselProgress", "EmptyVesselStone"}})
     then -- Accept and unlock
         player:unlockJob(xi.job.BLU)
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
         player:setPos(148, -2, 0, 130, 50)
     elseif csid == 3 and option ~= 13 then -- Make a mistake and get reset
         player:setCharVar("AnEmptyVesselProgress", 0)

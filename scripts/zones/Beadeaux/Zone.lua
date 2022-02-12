@@ -79,6 +79,8 @@ zone_object.onEventFinish = function(player, csid, option)
     if csid == 121 and npcUtil.completeQuest(player, BASTOK, xi.quest.id.bastok.BLADE_OF_DARKNESS, {title=xi.title.DARK_SIDER, var="ZeruhnMines_Zeid_CS"}) then
         player:unlockJob(xi.job.DRK)
         player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME_A_DARK_KNIGHT)
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
     elseif csid == 122 then
         player:addQuest(xi.quest.log_id.BASTOK, xi.quest.id.bastok.BLADE_OF_EVIL)
     end

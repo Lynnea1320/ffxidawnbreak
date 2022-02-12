@@ -42,6 +42,8 @@ entity.onEventFinish = function(player, csid, option)
         player:messageSpecial(ID.text.UNLOCK_CARBUNCLE)
         player:setCharVar("I_CAN_HEAR_A_RAINBOW", 0)
         player:confirmTrade()
+        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
 
         local rainbow = GetNPCByID(ID.npc.RAINBOW)
         rainbow:setLocalVar('setRainbow', 1)

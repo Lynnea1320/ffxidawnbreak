@@ -130,6 +130,8 @@ entity.onEventFinish = function(player, csid, option)
             player:unlockJob(xi.job.PLD)
             player:messageSpecial(ID.text.UNLOCK_PALADIN)
             player:addFame(SANDORIA, 30)
+            player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+            player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
             player:completeQuest(xi.quest.log_id.SANDORIA, xi.quest.id.sandoria.A_KNIGHT_S_TEST)
         else
             player:messageSpecial(ID.text.ITEM_CANNOT_BE_OBTAINED, 12306) -- Kite Shield

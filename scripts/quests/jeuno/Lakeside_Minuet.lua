@@ -103,6 +103,8 @@ quest.sections =
                     if quest:complete(player) then
                         player:unlockJob(xi.job.DNC)
                         player:messageSpecial(upperJeunoID.text.UNLOCK_DANCER)
+                        player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+                        player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
                         player:delKeyItem(xi.ki.STARDUST_PEBBLE)
                         player:needToZone(true)
                     end

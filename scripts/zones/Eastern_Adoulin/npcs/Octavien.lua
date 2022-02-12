@@ -94,6 +94,8 @@ entity.onEventFinish = function(player, csid, option)
             player:messageSpecial(ID.text.YOU_CAN_NOW_BECOME, 1)  -- You can now become a rune fencer!
             npcUtil.giveKeyItem(player, xi.ki.JOB_GESTURE_RUNE_FENCER)
             player:setCharVar("RUN_COTR", 0)
+            player:changeContainerSize(xi.inv.WARDROBE2, player:getContainerSize(xi.inv.WARDROBE2)+5)
+            player:PrintToPlayer(string.format("Your second Mog Wardrobe size has increased to %i.", player:getContainerSize(xi.inv.WARDROBE2)), xi.msg.channel.SYSTEM_3)
             player:delKeyItem(xi.ki.YAHSE_WILDFLOWER_PETAL)
             player:completeQuest(xi.quest.log_id.ADOULIN, xi.quest.id.adoulin.CHILDREN_OF_THE_RUNE)
         end
