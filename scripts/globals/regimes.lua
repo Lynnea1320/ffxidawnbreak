@@ -1442,7 +1442,7 @@ xi.regime.checkRegime = function(player, mob, regimeId, index, regimeType)
     end
 
     -- award XP every page completion
-    if xi.settings._BOOK_EXP_RATE ~= nil then player:addExp(reward * xi.settings.BOOK_EXP_RATE) end
+    if xi.settings.BOOK_EXP_RATE ~= nil then player:addExp(reward * xi.settings.BOOK_EXP_RATE) end
 
     -- repeating regimes
     if player:getCharVar("[regime]repeat") == 1 then
