@@ -59,6 +59,7 @@
 #include "../ai/states/weaponskill_state.h"
 #include "../alliance.h"
 #include "../battlefield.h"
+#include "../campaign_system.h"
 #include "../conquest_system.h"
 #include "../daily_system.h"
 #include "../entities/automatonentity.h"
@@ -4675,5 +4676,4 @@ namespace luautils
             return;
         }
     }
-
 }; // namespace luautils
