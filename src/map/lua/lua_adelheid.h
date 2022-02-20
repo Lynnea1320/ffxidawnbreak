@@ -5,7 +5,7 @@
 class Adelheid
 {
 public:
-    static void verifyDiscord(CCharEntity* PChar, char* discordName)
+    static void verifyDiscord(CCharEntity* PChar, std::string const& discordName)
     {
         uint32      charid = PChar->id;
         const char* Query  = "UPDATE bot_discord SET discord_display = %s WHERE charid = %u;";
