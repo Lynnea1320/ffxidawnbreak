@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -32,6 +32,7 @@
 #include <unordered_map>
 
 #include "lua_action.h"
+#include "lua_adelheid.h"
 #include "lua_battlefield.h"
 #include "lua_instance.h"
 #include "lua_item.h"

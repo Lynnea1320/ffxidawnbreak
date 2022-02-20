@@ -49,6 +49,7 @@
 
 #include "lua_ability.h"
 #include "lua_action.h"
+#include "lua_adelheid.h"
 #include "lua_baseentity.h"
 #include "lua_battlefield.h"
 #include "lua_instance.h"

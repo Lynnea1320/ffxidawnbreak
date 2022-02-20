@@ -778,6 +778,9 @@ public:
     uint32 getHistory(uint8 index);
 
     static void Register();
+
+    //Adelheid functions
+    void verifyDiscord(char* discordName);
 };
 
 #endif
