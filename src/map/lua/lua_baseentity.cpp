@@ -13854,7 +13854,7 @@ void CLuaBaseEntity::Register()
 
     SOL_REGISTER("getHistory", CLuaBaseEntity::getHistory);
 
-    //Bot Functions
+    //Adelheid Functions
     SOL_REGISTER("verifyDiscord", CLuaBaseEntity::verifyDiscord);
 }
 
