@@ -1,4 +1,6 @@
-﻿#include "luautils.h"
+﻿#pragma once
+
+#include "luautils.h"
 
 class Adelheid
 {
