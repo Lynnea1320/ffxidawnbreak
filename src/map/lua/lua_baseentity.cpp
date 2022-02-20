@@ -13128,7 +13128,7 @@ uint32 CLuaBaseEntity::getHistory(uint8 index)
  *  Notes   : This almost killed two idiots.
  ************************************************************************/
 
-void CLuaBaseEntity::verifyDiscord(char* discordName)
+void CLuaBaseEntity::verifyDiscord(std::string const& discordName)
 {
     auto* PChar = static_cast<CCharEntity*>(m_PBaseEntity);
 

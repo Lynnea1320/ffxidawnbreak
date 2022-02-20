@@ -10,5 +10,5 @@ cmdprops =
 }
 
 function onTrigger(player, discordName)
-    player:verifyDiscord(player, discordName)
+    player:verifyDiscord(discordName)
 end

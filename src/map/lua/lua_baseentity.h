@@ -780,7 +780,7 @@ public:
     static void Register();
 
     //Adelheid functions
-    void verifyDiscord(char* discordName);
+    void verifyDiscord(std::string const& discordName);
 };
 
 #endif
