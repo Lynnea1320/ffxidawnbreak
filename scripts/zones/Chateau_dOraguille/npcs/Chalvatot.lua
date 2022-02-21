@@ -95,7 +95,8 @@ entity.onEventFinish = function(player, csid, option)
             npcUtil.giveKeyItem(player, xi.ki.MAP_OF_THE_NORTHLANDS_AREA)
         end
         player:addExp(2000)
-        player:addGil(2000 * GIL_RATE)
+        player:addGil(2000*xi.settings.GIL_RATE)
+        player:messageSpecial(ID.text.GIL_OBTAINED, xi.settings.GIL_RATE * 2000)
         player:addFame(SANDORIA, 30)
         player:completeQuest(xi.quest.log_id.SANDORIA, xi.quest.id.sandoria.HER_MAJESTY_S_GARDEN)
     end
