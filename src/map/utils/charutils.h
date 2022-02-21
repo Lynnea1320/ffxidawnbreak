@@ -184,6 +184,8 @@ namespace charutils
     float AddExpBonus(CCharEntity* PChar, float exp);
 
     void RemoveAllEquipment(CCharEntity* PChar);
+    void SaveItemsToJobSet(CCharEntity* PChar, JOBTYPE job);
+    void EquipItemsFromJobSet(CCharEntity* PChar, JOBTYPE job);
 
     uint16 AvatarPerpetuationReduction(CCharEntity* PChar);
 
