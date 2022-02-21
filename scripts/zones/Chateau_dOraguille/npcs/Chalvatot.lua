@@ -91,8 +91,11 @@ entity.onEventFinish = function(player, csid, option)
         player:addQuest(xi.quest.log_id.SANDORIA, xi.quest.id.sandoria.HER_MAJESTY_S_GARDEN)
     elseif (csid == 83) then
         player:tradeComplete()
-        player:addKeyItem(xi.ki.MAP_OF_THE_NORTHLANDS_AREA)
-        player:messageSpecial(ID.text.KEYITEM_OBTAINED, xi.ki.MAP_OF_THE_NORTHLANDS_AREA)
+        if not player:hasKeyItem(xi.ki.MAP_OF_THE_NORTHLANDS_AREA) then
+            npcUtil.giveKeyItem(player, xi.ki.MAP_OF_THE_NORTHLANDS_AREA)
+        end
+        player:addExp(2000)
+        player:addGil(2000 * GIL_RATE)
         player:addFame(SANDORIA, 30)
         player:completeQuest(xi.quest.log_id.SANDORIA, xi.quest.id.sandoria.HER_MAJESTY_S_GARDEN)
     end
