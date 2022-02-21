@@ -2381,6 +2381,91 @@ namespace charutils
         SaveCharLook(PChar);
     }
 
+        void SaveItemsToJobSet(CCharEntity* PChar, JOBTYPE job)
+    {
+        Sql_Query(SqlHandle, "DELETE FROM char_job_sets WHERE charid = %u AND job = %u LIMIT 1;", PChar->id, (uint8)job);
+
+        Sql_Query(SqlHandle, "INSERT INTO char_job_sets VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u);", PChar->id, (uint8)job,
+                  PChar->getEquip((SLOTTYPE)(0)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(0))->getID(),
+                  PChar->getEquip((SLOTTYPE)(1)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(1))->getID(),
+                  PChar->getEquip((SLOTTYPE)(2)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(2))->getID(),
+                  PChar->getEquip((SLOTTYPE)(3)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(3))->getID(),
+                  PChar->getEquip((SLOTTYPE)(4)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(4))->getID(),
+                  PChar->getEquip((SLOTTYPE)(5)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(5))->getID(),
+                  PChar->getEquip((SLOTTYPE)(6)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(6))->getID(),
+                  PChar->getEquip((SLOTTYPE)(7)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(7))->getID(),
+                  PChar->getEquip((SLOTTYPE)(8)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(8))->getID(),
+                  PChar->getEquip((SLOTTYPE)(9)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(9))->getID(),
+                  PChar->getEquip((SLOTTYPE)(10)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(10))->getID(),
+                  PChar->getEquip((SLOTTYPE)(11)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(11))->getID(),
+                  PChar->getEquip((SLOTTYPE)(12)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(12))->getID(),
+                  PChar->getEquip((SLOTTYPE)(13)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(13))->getID(),
+                  PChar->getEquip((SLOTTYPE)(14)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(14))->getID(),
+                  PChar->getEquip((SLOTTYPE)(15)) == nullptr ? 0 : PChar->getEquip((SLOTTYPE)(15))->getID());
+    }
+
+    void EquipItemsFromJobSet(CCharEntity* PChar, JOBTYPE job)
+    {
+        int32 ret = Sql_Query(SqlHandle, "SELECT s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15 FROM char_job_sets WHERE charid = %u AND job = %u LIMIT 1;", PChar->id, (uint8)job);
+
+        if (ret == SQL_ERROR || Sql_NumRows(SqlHandle) == 0)
+            return;
+
+        Sql_NextRow(SqlHandle);
+
+        SLOTTYPE     slot       = (SLOTTYPE)0;
+        uint16       itemid     = 0;
+        uint16       lastitemid = 0;
+        CONTAINER_ID loc        = LOC_INVENTORY;
+        uint8        slotid     = 0;
+
+        for (slot = (SLOTTYPE)0; slot < 16; slot = (SLOTTYPE)((uint8)slot + 1))
+        {
+            itemid = Sql_GetUIntData(SqlHandle, slot);
+            if (itemid == 0)
+                continue;
+
+            loc    = LOC_INVENTORY;
+            slotid = ERROR_SLOTID;
+
+            auto performSearch = [&](CONTAINER_ID LOC_Container)
+            {
+                if (slotid == ERROR_SLOTID)
+                {
+                    slotid = PChar->getStorage(LOC_Container)->SearchItem(itemid);
+
+                    if (itemid == lastitemid)
+                    {
+                        slotid = PChar->getStorage(LOC_Container)->SearchItem(itemid, slotid + 1);
+                    }
+
+                    if (slotid != ERROR_SLOTID)
+                    {
+                        EquipItem(PChar, slotid, slot, LOC_Container);
+                    }
+                }
+            };
+
+            performSearch(LOC_INVENTORY);
+            performSearch(LOC_WARDROBE);
+            performSearch(LOC_WARDROBE2);
+            performSearch(LOC_WARDROBE3);
+            performSearch(LOC_WARDROBE4);
+            performSearch(LOC_WARDROBE5);
+            performSearch(LOC_WARDROBE6);
+            performSearch(LOC_WARDROBE7);
+            performSearch(LOC_WARDROBE8);
+
+            lastitemid = itemid;
+        }
+
+        CheckUnarmedWeapon(PChar);
+
+        BuildingCharWeaponSkills(PChar);
+        SaveCharEquip(PChar);
+        SaveCharLook(PChar);
+    }
+
     /************************************************************************
      *                                                                       *
      *  Проверяем логику всей экипировки персонажа                           *
