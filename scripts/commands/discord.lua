@@ -10,5 +10,10 @@ cmdprops =
 }
 
 function onTrigger(player, discordName)
-    player:verifyDiscord(discordName)
+    if discordName ~=nil then
+        player:verifyDiscord(discordName)
+    else
+        player:PrintToPlayer("You need to insert your discord display name as well as the numbers afterwards. (CASE SENSITIVE)")
+        player:PrintToPlayer("Exampple: !discord MyDiscordName#1250")
+    end
 end
