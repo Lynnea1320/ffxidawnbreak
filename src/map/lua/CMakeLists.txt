@@ -3,6 +3,8 @@ set(SOURCES
     lua_ability.h
     lua_action.cpp
     lua_action.h
+    
+    lua_adelheid.h
     lua_baseentity.cpp
     lua_baseentity.h
     lua_battlefield.cpp

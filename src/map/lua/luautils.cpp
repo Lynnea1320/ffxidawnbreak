@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -32,6 +32,7 @@
 #include <unordered_map>
 
 #include "lua_action.h"
+#include "lua_adelheid.h"
 #include "lua_battlefield.h"
 #include "lua_instance.h"
 #include "lua_item.h"
@@ -58,6 +59,7 @@
 #include "../ai/states/weaponskill_state.h"
 #include "../alliance.h"
 #include "../battlefield.h"
+#include "../campaign_system.h"
 #include "../conquest_system.h"
 #include "../daily_system.h"
 #include "../entities/automatonentity.h"
@@ -4674,5 +4676,4 @@ namespace luautils
             return;
         }
     }
-
 }; // namespace luautils

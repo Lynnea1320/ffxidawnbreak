@@ -21,6 +21,7 @@
 
 #include <cmath>
 
+#include "lua_adelheid.h"
 #include "lua_baseentity.h"
 #include "lua_battlefield.h"
 #include "lua_instance.h"
@@ -160,6 +161,7 @@
 #include "../utils/puppetutils.h"
 #include "../utils/trustutils.h"
 #include "../utils/zoneutils.h"
+
 
 //======================================================//
 
@@ -13119,7 +13121,20 @@ uint32 CLuaBaseEntity::getHistory(uint8 index)
     return outStat;
 }
 
-//==========================================================//
+/************************************************************************
+ *  Function: verifyDiscord()
+ *  Purpose : IT VERIFIES YOUR DISCORD FINALLY
+ *  Example : idk
+ *  Notes   : This almost killed two idiots.
+ ************************************************************************/
+
+void CLuaBaseEntity::verifyDiscord(std::string const& discordName)
+{
+    auto* PChar = static_cast<CCharEntity*>(m_PBaseEntity);
+
+    Adelheid::verifyDiscord(PChar, discordName);
+};
+    //==========================================================//
 
 void CLuaBaseEntity::Register()
 {
@@ -13838,6 +13853,9 @@ void CLuaBaseEntity::Register()
     SOL_REGISTER("updateToEntireZone", CLuaBaseEntity::updateToEntireZone);
 
     SOL_REGISTER("getHistory", CLuaBaseEntity::getHistory);
+
+    //Adelheid Functions
+    SOL_REGISTER("verifyDiscord", CLuaBaseEntity::verifyDiscord);
 }
 
 
