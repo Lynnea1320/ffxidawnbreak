@@ -86,6 +86,7 @@
 #include "../utils/charutils.h"
 #include "../utils/instanceutils.h"
 #include "../utils/itemutils.h"
+#include "../utils/moduleutils.h"
 #include "../utils/zoneutils.h"
 #include "../vana_time.h"
 #include "../weapon_skill.h"
@@ -243,6 +244,8 @@ namespace luautils
 
         // Handle settings
         contentRestrictionEnabled = GetSettingsVariable("RESTRICT_CONTENT") != 0;
+
+        moduleutils::LoadLuaModules();
 
         TracyReportLuaMemory(lua.lua_state());
 
