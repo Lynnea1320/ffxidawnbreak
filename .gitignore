@@ -224,3 +224,5 @@ memcheck.out.*
 settings.ini
 
 *.bak
+
+CppProperties.json

@@ -13128,11 +13128,18 @@ uint32 CLuaBaseEntity::getHistory(uint8 index)
  *  Notes   : This almost killed two idiots.
  ************************************************************************/
 
-void CLuaBaseEntity::verifyDiscord(std::string const& discordName)
+bool CLuaBaseEntity::verifyDiscord(std::string const& discordName)
 {
-    auto* PChar = static_cast<CCharEntity*>(m_PBaseEntity);
-
-    Adelheid::verifyDiscord(PChar, discordName);
+    auto* PChar = static_cast<CCharEntity*>(m_PBaseEntity); // We're saving the character here as the usual PChar var.
+    if (Adelheid::verifyDiscord(discordName))               // We want to see if the input the user gave is in the correct format to be a discord username.
+    {
+        Adelheid::setDiscord(PChar, discordName);           // Since it looks good, we'll call this function to actually save it.
+        return true;                                        // Let's tell the lua script everything was fine.
+    }
+    else
+    {
+        return false;                                       // Something wasn't right so we'll tell the lua script that it failed verification so it can output an error to the user.
+    }
 };
     //==========================================================//
 
