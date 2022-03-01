@@ -226,6 +226,3 @@ settings.ini
 *.bak
 
 CppProperties.json
-
-/libmariadb.dll
-
