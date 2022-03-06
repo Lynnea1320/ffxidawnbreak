@@ -292,7 +292,7 @@ void CCharEntity::pushPacket(CBasicPacket* packet)
 {
     TracyZoneScoped;
     TracyZoneIString(GetName());
-    TracyZoneHex16(packet->id());
+    TracyZoneHex16(packet->getType());
 
     std::lock_guard<std::mutex> lk(m_PacketListMutex);
 
